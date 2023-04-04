@@ -43,6 +43,9 @@ export class UsersService {
   async getSingleUser(id: string) {
     this.logger.log(`Returning post with id: ${id}`);
     const user = await this.findUser(id);
+    if (!user) {
+      throw new NotFoundException('Could not find user');
+    }
     return {
       id: user.id,
       username: user.username,
@@ -71,7 +74,12 @@ export class UsersService {
     password: string,
   ) {
     this.logger.log(`Updating user with id: ${id}`);
+    // const updatedUser = await this.userModel.findById(id);
+    // console.log(updatedUser);
     const updatedUser = await this.findUser(id);
+    if (!updatedUser) {
+      throw new NotFoundException('Could not find user');
+    }
     if (username) {
       updatedUser.username = username;
     }
