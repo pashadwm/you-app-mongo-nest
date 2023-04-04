@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.entity';
@@ -6,8 +11,12 @@ import { User } from './user.entity';
 @Injectable()
 export class UsersService {
   private users: User[] = [];
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
+
   async insertUser(username: string, email: string, password: string) {
+    this.logger.log(`Creating User: ${username} with email ${email}`);
     const newUser = new this.userModel({
       username: username,
       email: email,
@@ -20,6 +29,7 @@ export class UsersService {
   }
 
   async getAllUsers() {
+    this.logger.log('Returning all users');
     const users = await this.userModel.find().exec();
     console.log(users);
     return users.map((user) => ({
@@ -31,6 +41,7 @@ export class UsersService {
   }
 
   async getSingleUser(id: string) {
+    this.logger.log(`Returning post with id: ${id}`);
     const user = await this.findUser(id);
     return {
       id: user.id,
@@ -59,6 +70,7 @@ export class UsersService {
     email: string,
     password: string,
   ) {
+    this.logger.log(`Updating user with id: ${id}`);
     const updatedUser = await this.findUser(id);
     if (username) {
       updatedUser.username = username;
@@ -73,6 +85,7 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
+    this.logger.log(`Deleting user with id: ${id}`);
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     console.log(result);
 
