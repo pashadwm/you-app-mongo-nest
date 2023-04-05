@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
+import { RegisterModule } from './api/register/register.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { UsersModule } from './users/users.module';
       'mongodb+srv://dumby:eHj7zfizoS4xKTnm@cluster0.zyiv6nm.mongodb.net/you-app?retryWrites=true&w=majority',
     ),
     UsersModule,
+    RegisterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

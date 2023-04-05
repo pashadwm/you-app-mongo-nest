@@ -29,7 +29,7 @@ export class UsersController {
   //   return this.usersService.insertUser('Pasha', 'psdm@gmail.com', 'psdm');
   // }
 
-  @Post()
+  @Get('/register')
   @ApiCreatedResponse({ description: 'User created successfully.' })
   @ApiUnprocessableEntityResponse({ description: 'User title already exists.' })
   async insertUser(
@@ -52,25 +52,50 @@ export class UsersController {
     return users;
   }
 
-  @Get(':id')
+  @Post('/login/:username')
   @ApiOkResponse({ description: 'User retrieved successfully.' })
   @ApiNotFoundResponse({ description: 'User not found.' })
-  getUser(@Param('id') id: string) {
-    return this.usersService.getSingleUser(id);
+  getUser(
+    @Param('username') username: string,
+    @Body('password') password: string,
+  ) {
+    return this.usersService.getSingleUser(username, password);
   }
 
-  @Post(':id')
+  @Post('/update/:username')
   @ApiOkResponse({ description: 'User updated successfully.' })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiUnprocessableEntityResponse({ description: 'Username already exists.' })
   async update(
-    @Param('id') id: string,
-    @Body('username') username: string,
+    @Param('username') username: string,
+    // @Body('id') username: string,
     @Body('email') email: string,
     @Body('password') password: string,
+    @Body('displayName') displayName: string,
+    @Body('gender') gender: string,
+    @Body('birthday') birthday: string,
+    @Body('age') age: string,
+    @Body('horoscope') horoscope: string,
+    @Body('zodiac') zodiac: string,
+    @Body('height') height: string,
+    @Body('heightUnit') heightUnit: string,
+    @Body('weight') weight: string,
   ) {
-    await this.usersService.updateUser(id, username, email, password);
-    return null;
+    const result = await this.usersService.updateUser(
+      username,
+      email,
+      password,
+      displayName,
+      gender,
+      birthday,
+      age,
+      horoscope,
+      zodiac,
+      height,
+      heightUnit,
+      weight,
+    );
+    return result;
   }
 
   @Delete(':id')
