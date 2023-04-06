@@ -62,7 +62,14 @@ export class UsersController {
     return this.usersService.getSingleUser(username, password);
   }
 
-  @Post('/update/:username')
+  @Get('/getProfile/:id')
+  @ApiOkResponse({ description: 'Profile retrieved successfully.' })
+  @ApiNotFoundResponse({ description: 'Profile not found.' })
+  getProfile(@Param('id') id: string) {
+    return this.usersService.getSingleProfile(id);
+  }
+
+  @Post('/updateProfile/:username')
   @ApiOkResponse({ description: 'User updated successfully.' })
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiUnprocessableEntityResponse({ description: 'Username already exists.' })

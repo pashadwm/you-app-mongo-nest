@@ -72,7 +72,30 @@ export class UsersService {
       };
     }
     throw new NotFoundException('Could not find user');
-    // console.log(a);
+  }
+
+  async getSingleProfile(id: string) {
+    this.logger.log(`Returning user with id: ${id}`);
+    let user = await this.userModel.findById(id);
+
+    if (user) {
+      return {
+        id: user.id,
+        // username: user.username,
+        // email: user.email,
+        // password: user.password,
+        displayName: user.displayName,
+        gender: user.gender,
+        birthday: user.birthday,
+        age: user.age,
+        horoscope: user.horoscope,
+        zodiac: user.zodiac,
+        height: user.height,
+        heightUnit: user.heightUnit,
+        weight: user.weight,
+      };
+    }
+    throw new NotFoundException('Could not find profile');
   }
   private async findUser(id: string): Promise<User> {
     let user;
