@@ -17,33 +17,42 @@ import {
 } from '@nestjs/swagger';
 import { HttpExceptionFilter } from '../filters/http-exception.filter';
 import { UsersService } from './users.service';
+import { MiddleService } from './users.validation';
+import { LoginDTO, RegisterDTO } from './users.dto';
 
 @Controller('users')
 @ApiTags('users')
 @UseFilters(HttpExceptionFilter)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private middleService: MiddleService,
+  ) {}
+
+  @Post('login')
+  async login(@Body() userDTO: LoginDTO) {
+    const user = await this.usersService.findByLogin(userDTO);
+    const payload = {
+      email: user.email,
+    };
+    const token = await this.middleService.signPayload(payload);
+    return { user, token };
+  }
+
+  @Post('register')
+  async register(@Body() userDTO: RegisterDTO) {
+    const user = await this.usersService.create(userDTO);
+    const payload = {
+      email: user.email,
+    };
+    const token = await this.middleService.signPayload(payload);
+    return { user, token };
+  }
 
   // @Post()
   // insertUser(@Body() createUserDto: CreateUserDto) {
   //   return this.usersService.insertUser('Pasha', 'psdm@gmail.com', 'psdm');
   // }
-
-  @Get('/register')
-  @ApiCreatedResponse({ description: 'User created successfully.' })
-  @ApiUnprocessableEntityResponse({ description: 'User title already exists.' })
-  async insertUser(
-    @Body('username') userName: string,
-    @Body('email') userEmail: string,
-    @Body('password') userPassword: string,
-  ) {
-    const generatedId = await this.usersService.insertUser(
-      userName,
-      userEmail,
-      userPassword,
-    );
-    return { id: generatedId };
-  }
 
   @Get()
   @ApiOkResponse({ description: 'Users retrieved successfully.' })
@@ -52,15 +61,31 @@ export class UsersController {
     return users;
   }
 
-  @Post('/login/:username')
-  @ApiOkResponse({ description: 'User retrieved successfully.' })
-  @ApiNotFoundResponse({ description: 'User not found.' })
-  getUser(
-    @Param('username') username: string,
-    @Body('password') password: string,
-  ) {
-    return this.usersService.getSingleUser(username, password);
-  }
+  // @Get('/register')
+  // @ApiCreatedResponse({ description: 'User created successfully.' })
+  // @ApiUnprocessableEntityResponse({ description: 'User title already exists.' })
+  // async insertUser(
+  //   @Body('username') userName: string,
+  //   @Body('email') userEmail: string,
+  //   @Body('password') userPassword: string,
+  // ) {
+  //   const generatedId = await this.usersService.insertUser(
+  //     userName,
+  //     userEmail,
+  //     userPassword,
+  //   );
+  //   return { id: generatedId };
+  // }
+
+  // @Post('/login')
+  // @ApiOkResponse({ description: 'User retrieved successfully.' })
+  // @ApiNotFoundResponse({ description: 'User not found.' })
+  // getUser(
+  //   @Body('username') username: string,
+  //   @Body('password') password: string,
+  // ) {
+  //   return this.usersService.getSingleUser(username, password);
+  // }
 
   @Get('/getProfile/:id')
   @ApiOkResponse({ description: 'Profile retrieved successfully.' })

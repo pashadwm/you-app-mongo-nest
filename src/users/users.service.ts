@@ -1,4 +1,6 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   Logger,
@@ -6,7 +8,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from './user.entity';
+import { User } from './users.entity';
+import { RegisterDTO, LoginDTO } from './users.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +18,35 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
+  async create(userDTO: RegisterDTO): Promise<User> {
+    const { email } = userDTO;
+    const user = await this.userModel.findOne({ email });
+    if (user) {
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+    }
+    const createdUser = new this.userModel(userDTO);
+    await createdUser.save();
+    return createdUser;
+  }
+
+  async findByLogin(userDTO: LoginDTO): Promise<User> {
+    const { email, password } = userDTO;
+    const user = await this.userModel.findOne({ email }).select('+password');
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    const passworMatch = await bcrypt.compare(password, user.password);
+    if (!passworMatch) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    return user;
+  }
+
+  async findByPayload(payload: any) {
+    const { email } = payload;
+    const user = await this.userModel.findOne({ email });
+    return user;
+  }
 
   async insertUser(username: string, email: string, password: string) {
     this.logger.log(`Creating User: ${username} with email ${email}`);
@@ -142,9 +175,9 @@ export class UsersService {
     if (email) {
       updatedUser.email = email;
     }
-    if (password) {
-      updatedUser.password = password;
-    }
+    // if (password) {
+    //   updatedUser.password = password;
+    // }
     if (displayName) {
       updatedUser.displayName = displayName;
     }
