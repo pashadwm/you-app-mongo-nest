@@ -9,7 +9,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './users.entity';
-import { RegisterDTO, LoginDTO } from './users.dto';
+import { RegisterDTO, LoginDTO, ProfileDTO } from './users.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -39,6 +39,25 @@ export class UsersService {
     if (!passworMatch) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
+    return user;
+  }
+
+  async updateByLogin(userDTO: ProfileDTO): Promise<User> {
+    const { email } = userDTO;
+    const user = await this.userModel.findOne({ email }).select('+password');
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+    user.displayName = userDTO.displayName;
+    user.gender = userDTO.gender;
+    user.birthday = userDTO.birthday;
+    user.age = userDTO.age;
+    user.horoscope = userDTO.horoscope;
+    user.zodiac = userDTO.zodiac;
+    user.height = userDTO.height;
+    user.heightUnit = userDTO.heightUnit;
+    user.weight = userDTO.weight;
+    user.save();
     return user;
   }
 

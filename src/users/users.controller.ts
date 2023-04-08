@@ -18,7 +18,7 @@ import {
 import { HttpExceptionFilter } from '../filters/http-exception.filter';
 import { UsersService } from './users.service';
 import { MiddleService } from './users.validation';
-import { LoginDTO, RegisterDTO } from './users.dto';
+import { LoginDTO, ProfileDTO, RegisterDTO } from './users.dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -28,6 +28,23 @@ export class UsersController {
     private usersService: UsersService,
     private middleService: MiddleService,
   ) {}
+
+  @Get()
+  @ApiOkResponse({ description: 'Users retrieved successfully.' })
+  async getAllUsers() {
+    const users = await this.usersService.getAllUsers();
+    return users;
+  }
+
+  @Get('register')
+  async register(@Body() userDTO: RegisterDTO) {
+    const user = await this.usersService.create(userDTO);
+    const payload = {
+      email: user.email,
+    };
+    const token = await this.middleService.signPayload(payload);
+    return { user, token };
+  }
 
   @Post('login')
   async login(@Body() userDTO: LoginDTO) {
@@ -39,9 +56,9 @@ export class UsersController {
     return { user, token };
   }
 
-  @Post('register')
-  async register(@Body() userDTO: RegisterDTO) {
-    const user = await this.usersService.create(userDTO);
+  @Post('/updateProfile')
+  async update(@Body() userDTO: ProfileDTO) {
+    const user = await this.usersService.updateByLogin(userDTO);
     const payload = {
       email: user.email,
     };
@@ -49,85 +66,11 @@ export class UsersController {
     return { user, token };
   }
 
-  // @Post()
-  // insertUser(@Body() createUserDto: CreateUserDto) {
-  //   return this.usersService.insertUser('Pasha', 'psdm@gmail.com', 'psdm');
-  // }
-
-  @Get()
-  @ApiOkResponse({ description: 'Users retrieved successfully.' })
-  async getAllUsers() {
-    const users = await this.usersService.getAllUsers();
-    return users;
-  }
-
-  // @Get('/register')
-  // @ApiCreatedResponse({ description: 'User created successfully.' })
-  // @ApiUnprocessableEntityResponse({ description: 'User title already exists.' })
-  // async insertUser(
-  //   @Body('username') userName: string,
-  //   @Body('email') userEmail: string,
-  //   @Body('password') userPassword: string,
-  // ) {
-  //   const generatedId = await this.usersService.insertUser(
-  //     userName,
-  //     userEmail,
-  //     userPassword,
-  //   );
-  //   return { id: generatedId };
-  // }
-
-  // @Post('/login')
-  // @ApiOkResponse({ description: 'User retrieved successfully.' })
-  // @ApiNotFoundResponse({ description: 'User not found.' })
-  // getUser(
-  //   @Body('username') username: string,
-  //   @Body('password') password: string,
-  // ) {
-  //   return this.usersService.getSingleUser(username, password);
-  // }
-
   @Get('/getProfile/:id')
   @ApiOkResponse({ description: 'Profile retrieved successfully.' })
   @ApiNotFoundResponse({ description: 'Profile not found.' })
   getProfile(@Param('id') id: string) {
     return this.usersService.getSingleProfile(id);
-  }
-
-  @Post('/updateProfile/:username')
-  @ApiOkResponse({ description: 'User updated successfully.' })
-  @ApiNotFoundResponse({ description: 'User not found.' })
-  @ApiUnprocessableEntityResponse({ description: 'Username already exists.' })
-  async update(
-    @Param('username') username: string,
-    // @Body('id') username: string,
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('displayName') displayName: string,
-    @Body('gender') gender: string,
-    @Body('birthday') birthday: string,
-    @Body('age') age: string,
-    @Body('horoscope') horoscope: string,
-    @Body('zodiac') zodiac: string,
-    @Body('height') height: string,
-    @Body('heightUnit') heightUnit: string,
-    @Body('weight') weight: string,
-  ) {
-    const result = await this.usersService.updateUser(
-      username,
-      email,
-      password,
-      displayName,
-      gender,
-      birthday,
-      age,
-      horoscope,
-      zodiac,
-      height,
-      heightUnit,
-      weight,
-    );
-    return result;
   }
 
   @Delete(':id')
